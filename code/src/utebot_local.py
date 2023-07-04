@@ -214,3 +214,27 @@ def main():
     App(tk.Tk(),'UTEBOT')
 
 main()
+
+class ElapsedTimeClock:
+    def __init__(self, master):
+        self.master = master
+        self.seconds = 0
+        self.elapsed_time_label = Label(self.master, text="ELAPSED TIME: 00:00:00", bg='blue')
+        self.elapsed_time_label.pack()
+
+    def tick(self):
+        self.seconds += 1
+        self.elapsed_time_label.configure(text=self.get_elapsed_time())
+        self.timer = self.master.after(1000, self.tick)
+
+    def start(self):
+        self.tick()
+
+    def stop(self):
+        self.master.after_cancel(self.timer)
+
+    def get_elapsed_time(self):
+        hours = self.seconds // 3600
+        minutes = (self.seconds // 60) % 60
+        seconds = self.seconds % 60
+        return f"ELAPSED TIME: {hours:02d}:{minutes:02d}:{seconds:02d}"

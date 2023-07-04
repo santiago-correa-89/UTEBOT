@@ -1,7 +1,9 @@
 import cv2
 import numpy as np
 import tkinter as tk
+import paramiko
 from tkinter import *
+
 
 import PIL
 from PIL import ImageTk, Image
@@ -12,7 +14,8 @@ import argparse
 
 
 class App:
-    def __init__(self, window, window_title, video_source='rtsp://10.20.1.1::8081/unicast'):
+    def __init__(self, window, window_title, video_source='http://10.20.1.1:8080/?action=stream'):
+        
         self.window = window
         self.window.title(window_title)
         self.video_source = video_source
@@ -49,7 +52,7 @@ class App:
         self.update()
 
         self.window.mainloop()
-
+    
     def snapshot(self):
         # Get a frame from the video source
         ret,frame=self.vid.get_frame()
@@ -208,10 +211,29 @@ class CommandLineParser:
         # Here args is of namespace and values will be accessed through tag names
         self.args = parser.parse_args()
 
+def ssh_conn(host, user, passwd):
+    
+    try:
+        client = paramiko.SSHClient()
+        client.load_system_host_keys()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(host, username=user, password= passwd )
+    
+        cmd = '/usr/local/bin/mjpg_streamer -i "/usr/local/lib/mjpg-streamer/input_uvc.so -n -f 30 -r 1280x720" > -o "/usr/local/lib/mjpg-streamer/output_http.so -p 8085 -w /usr/local/share/mjpg-streamer/www"'
+        ssh_stdin, ssh_stdout, ssh_stderr = client.exec_command(cmd)
+        #print(ssh_stdout.read().decode())
+        client.close()
+    except Exception as err:
+        print(str(err))
 
-
-def main():
+def main(host, user, passwd):
+    #Establish connection with Raspberry PI and execute the webcam order
+    ssh_conn(host, user, passwd)
     # Create a window and pass it to the Application object
     App(tk.Tk(),'UTEBOT')
 
-main()
+host = '10.20.1.1'
+user = 'utebot'
+passwd = 'ddm-utebot'
+
+main(host, user, passwd)

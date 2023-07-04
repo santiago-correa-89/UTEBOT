@@ -11,6 +11,8 @@ import time
 import datetime as dt
 import argparse
 
+os.environ['OPENCV_FFMPEG_CAPTURE_OPTIONS'] = 'rtsp_transport;udp'
+
 class App:
     def __init__(self, window, window_title, video_source):
         self.window = window
@@ -101,8 +103,8 @@ class VideoCapture:
             #create videowriter
             # 1. Video Type
             VIDEO_TYPE = {
-                    'avi': cv2.VideoWriter_fourcc(*'mjpg'),
-                    'mp4': cv2.VideoWriter_fourcc(*'mp4v'),
+                    'avi': cv2.VideoWriter_fourcc('m', 'j', 'p', 'g'),
+                    'mp4': cv2.VideoWriter_fourcc('m', 'p', '4', 'v'),
                     }
 
             self.fourcc = VIDEO_TYPE[args.type[0]]
@@ -211,7 +213,7 @@ class CommandLineParser:
         parser = argparse.ArgumentParser(description = 'UTEBOT GUI definitions')
 
         # Only values is supporting for the tag --type. So nargs will be '1' to get
-        parser.add_argument('--type', nargs=1, default=['avi'], type=str, help = 'Type of the video output: for now we have only AVI & MP4')
+        parser.add_argument('--type', nargs=1, default=['mp4'], type=str, help = 'Type of the video output: for now we have only AVI & MP4')
 
         # Only one values are going to accept for the tag --res. So nargs will be '1'
         parser.add_argument('--res', nargs=1, default=['480p'], type=str, help = 'Resolution of the video output: for now we have 480p, 720p, 1080p & 4k')
@@ -231,8 +233,8 @@ class CommandLineParser:
 def main():
     # Create a window and pass it to the Application object
     
-    #stream = 'rtsp://10.20.1.1:8081/unicast'
-    stream = 0
+    stream = 'rtsp://10.20.1.1:8081/unicast'
+    #stream = 0
     
     App(tk.Tk(),'UTEBOT', stream)
 
