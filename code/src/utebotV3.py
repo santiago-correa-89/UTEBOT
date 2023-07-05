@@ -45,7 +45,8 @@ class App:
         self.btn_quit.pack(side=tk.LEFT)
 
         # After it is called once, the update method will be automatically called every delay milliseconds
-        self.delay=67
+        args=CommandLineParser().args
+        _, _, _, self.delay = get_video_parameters(args)
         self.update()
 
         self.window.mainloop()
@@ -55,7 +56,7 @@ class App:
         ret, frame=self.vid.get_frame()
 
         if ret:
-            cv2.imwrite("FRAME" + time.strftime("%d-%m-%Y-%H-%M-%S")+".jpg",cv2.cvtColor(frame,cv2.COLOR_RGB2BGR))
+            cv2.imwrite("FRAME-" + time.strftime("%d-%m-%Y-%H-%M-%S")+".jpg",cv2.cvtColor(frame,cv2.COLOR_RGB2BGR))
 
     def open_camera(self):
         self.ok = True
@@ -94,31 +95,33 @@ class VideoCapture:
         # Command Line Parser
         args=CommandLineParser().args
 
+        fourcc, res, fps, _= get_video_parameters(args)
+        
         #CREATE VIDEOWRITER
-
-        # 1. Video Type
-        VIDEO_TYPE = {
-            'avi': cv2.VideoWriter_fourcc(*'MPEG'),
-            'mp4': cv2.VideoWriter_fourcc(*'MP4V'),
-        }
-        self.fourcc=VIDEO_TYPE[args.type[0]]
-
-        # 2. Video Dimension
-        STD_DIMENSIONS =  {
-            '720': (1280, 720),
-            '1080': (1920, 1080),
-        }
-        res=STD_DIMENSIONS[args.res[0]]
         
-        # 3. Video Frame Per Second
-        FPS_RATE =  {
-            '15': 15,
-            '30': 30,
-        }
-        fps=FPS_RATE[args.fps[0]]
+        # # 1. Video Type
+        # VIDEO_TYPE = {
+        #     'avi': cv2.VideoWriter_fourcc(*'MPEG'),
+        #     'mp4': cv2.VideoWriter_fourcc(*'MP4V'),
+        # }
+        # self.fourcc=VIDEO_TYPE[args.type[0]]
+
+        # # 2. Video Dimension
+        # STD_DIMENSIONS =  {
+        #     '720': (1280, 720),
+        #     '1080': (1920, 1080),
+        # }
+        # res=STD_DIMENSIONS[args.res[0]]
         
-        print(args.name, self.fourcc, res)
-        self.out = cv2.VideoWriter(args.name[0]+'.'+args.type[0], self.fourcc, fps, res)
+        # # 3. Video Frame Per Second
+        # FPS_RATE =  {
+        #     '15': 15,
+        #     '30': 30,
+        # }
+        # fps=FPS_RATE[args.fps[0]]
+        
+        print(args.name, fourcc, res)
+        self.out = cv2.VideoWriter(args.name[0] + "-" + time.strftime("%d-%m-%Y-%H-%M-%S") + '.' + args.type[0], fourcc, fps, res)
 
         #set video source width and height
         self.vid.set(3,res[0])
@@ -149,14 +152,13 @@ class VideoCapture:
     
 class ElapsedTimeClock:
     def __init__(self, window):
-        self.T=tk.Label(window, text='ELAPSED TIME: 00:00:00', font=('times', 20, 'bold'), bg='green')
+        self.T=tk.Label(window, text='ELAPSED TIME: 00:00:00', font=('Helvetica', 18, 'bold'), bg='green')
         self.T.pack(fill=tk.BOTH, expand=1)
         self.elapsedTime=dt.datetime(1,1,1)
         self.running=0
         self.lastTime=''
         t = time.localtime()
         self.zeroTime = dt.timedelta(hours=t[3], minutes=t[4], seconds=t[5])
-        # self.tick()
 
  
     def tick(self):
@@ -168,21 +170,19 @@ class ElapsedTimeClock:
         if self.time2 != self.lastTime:
             self.lastTime = self.time2
             self.T.config(text=self.time2)
-        # calls itself every 200 milliseconds
-        # to update the time display as needed
-        # could use >200 ms, but display gets jerky
-        self.updwin=self.T.after(100, self.tick)
+        # calls itself every 67 millisecondsto update the time display
+        self.updwin=self.T.after(67, self.tick)
 
     def start(self):
             if not self.running:
-                self.zeroTime=dt.datetime(1, 1, 1).now()-self.elapsedTime
+                self.zeroTime=dt.datetime(1, 1, 1).now() - self.elapsedTime
                 self.tick()
                 self.running=1
 
     def stop(self):
             if self.running:
                 self.T.after_cancel(self.updwin)
-                self.elapsedTime=dt.datetime(1, 1, 1).now()-self.zeroTime
+                self.elapsedTime=dt.datetime(1, 1, 1).now() - self.zeroTime
                 self.time2=self.elapsedTime
                 self.running=0
 
@@ -190,7 +190,7 @@ class CommandLineParser:
     def __init__(self):
 
         # Create object of the Argument Parser
-        parser=argparse.ArgumentParser(description='Script to record videos')
+        parser=argparse.ArgumentParser(description='GUI for camera display')
 
         # Create a group for requirement 
         # for now no required arguments 
@@ -212,15 +212,52 @@ class CommandLineParser:
         # Here args is of namespace and values will be accessed through tag names
         self.args = parser.parse_args()
 
+def get_video_parameters(args):
+    # 1. Video Type
+    VIDEO_TYPE = {
+        'avi': cv2.VideoWriter_fourcc(*'MPEG'),
+        'mp4': cv2.VideoWriter_fourcc(*'MP4V'),
+    }
+    fourcc = VIDEO_TYPE[args.type[0]]
+
+    # 2. Video Dimension
+    STD_DIMENSIONS = {
+        '720': (1280, 720),
+        '1080': (1920, 1080),
+    }
+    res = STD_DIMENSIONS[args.res[0]]
+
+    # 3. Video Frame Per Second
+    FPS_RATE = {
+        '15': 15,
+        '30': 30,
+    }
+    fps = FPS_RATE[args.fps[0]]
+    
+    MS_RATE = {
+    '15': 67,
+    '30': 33,
+    }
+    ms = MS_RATE[args.fps[0]]
+
+    return fourcc, res, fps, ms
+
 def ssh_conn(host, user, passwd):
     try:
+        
+
+        
         ssh = paramiko.SSHClient()
         ssh.load_system_host_keys()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(host, username=user, password=passwd)
         print("SSH CONNECTION ESTABLISHED")
+        
+        # Command Line Parser
+        args=CommandLineParser().args
+        fourcc, res, fps, _ = get_video_parameters(args)
 
-        # Execute command for webcam recording
+        # EXECUTE COMMAND FOR WEBCAM RECORDING
         command = '/usr/local/bin/mjpg_streamer -i "/usr/local/lib/mjpg-streamer/input_uvc.so -n -f 15 -r 1280x720" > -o "/usr/local/lib/mjpg-streamer/output_http.so -p 8085 -w /usr/local/share/mjpg-streamer/www"'
         stdin, stdout, stderr = ssh.exec_command(command)
 
