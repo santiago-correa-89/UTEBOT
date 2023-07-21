@@ -223,9 +223,7 @@ def get_video_parameters(args):
 
 def ssh_conn(host, user, passwd):
     try:
-        
 
-        
         ssh = paramiko.SSHClient()
         ssh.load_system_host_keys()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
