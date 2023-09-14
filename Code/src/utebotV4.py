@@ -25,7 +25,7 @@ class App:
         # OPEN VIDEO SOURCE
         self.vid = VideoCapture(self.video_source, self.folder)
 
-        # CREATE A CANVAS THAT CAN FIT THE ABOCE VIDEO SOURCE SIZE
+        # CREATE A CANVAS THAT CAN FIT THE ABOVE VIDEO SOURCE SIZE
         self.canvas = tk.Canvas(window, width = self.vid.width, height = self.vid.height)
         self.canvas.pack()
 
@@ -149,8 +149,8 @@ class ElapsedTimeClock:
         if self.time2 != self.lastTime:
             self.lastTime = self.time2
             self.T.config(text=self.time2)
-        # calls itself every 67 millisecondsto update the time display
-        self.updwin=self.T.after(67, self.tick)
+        # calls itself every fps millisecondsto update the time display
+        self.updwin=self.T.after(33, self.tick)
 
     def start(self):
             if not self.running:
@@ -185,7 +185,7 @@ class CommandLineParser:
         parser.add_argument('--name', nargs=1, default=['UTEBOT'], type=str, help='Enter Output video title/name')
 
         # Only one values are going to accept for the tag --name. So nargs will be '1'
-        parser.add_argument('--fps', nargs=1, default=['15'], type=str, help='Frame per Second rate of the video output: LOGITECH default setting 30 fps')
+        parser.add_argument('--fps', nargs=1, default=['30'], type=str, help='Frame per Second rate of the video output: LOGITECH default setting 30 fps')
 
         # Parse the arguments and get all the values in the form of namespace.
         # Here args is of namespace and values will be accessed through tag names
@@ -235,10 +235,10 @@ def ssh_conn(host, user, passwd):
         fourcc, res, fps, _ = get_video_parameters(args)
 
         # EXECUTE COMMAND FOR WEBCAM RECORDING
-        command = '/usr/local/bin/mjpg_streamer -i "/usr/local/lib/mjpg-streamer/input_uvc.so -n -f 15 -r 1280x720" > -o "/usr/local/lib/mjpg-streamer/output_http.so -p 8085 -w /usr/local/share/mjpg-streamer/www"'
+        command = '/usr/local/bin/mjpg_streamer -i "/usr/local/lib/mjpg-streamer/input_uvc.so -n -f 30 -r 1280x720" > -o "/usr/local/lib/mjpg-streamer/output_http.so -p 8085 -w /usr/local/share/mjpg-streamer/www"'
         stdin, stdout, stderr = ssh.exec_command(command)
 
-        # Close the SSH connection
+        # CLOSE THE SSH CONNECTION
         ssh.close()
         print("SSH CONNECTION CLOSED")
     
