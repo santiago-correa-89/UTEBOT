@@ -50,9 +50,9 @@ sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 sudo netfilter-persistent save
 
 STEP 9 (set DHCP service ober router)
-sudo mv /etc/dnsmasq.conf /et/dnsmasq.conf.old
+sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.old
 sudo touch /etc/dnsmasq.conf
-sudo nano /erc/dnsmasq.conf
+sudo nano /etc/dnsmasq.conf
 
 interface=wlan0
 dhcp-range=10.20.1.5,10.20.1.100,255.255.255.0,300d
